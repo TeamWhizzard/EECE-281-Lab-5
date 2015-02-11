@@ -24,7 +24,7 @@
 
 // pin declaration
 LiquidCrystal lcd(2, 3, 8, 9, 10, 11); // initialize LCD display object
-Ultrasonic ultrasonic(7,8); // initialize Ultrasonic sensor object (trigger, echo)
+Ultrasonic ultrasonic(6,5); // initialize Ultrasonic sensor object (trigger, echo)
 
 void setup() {
   Serial.begin(115200); // serial Port Initialization
