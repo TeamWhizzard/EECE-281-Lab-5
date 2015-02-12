@@ -22,9 +22,9 @@
 //#include <LiquidCrystal.h>
 #include "NewPing.h"
 
-const int pinTrig = 8;
-const int pinEcho = 9;
-const int pinTemp = A1;
+const int pinTrig = 12;
+const int pinEcho = 13;
+const int pinTemp = A0;
 
 const int MAX_DISTANCE = 500; // maximum reading distance of ultrasonic sensor in cm
 
