@@ -6,6 +6,7 @@ import processing.serial.*;
 
 int window = 600;
 int border = 60;
+
 float topAngle = 0;
 float botAngle = QUARTER_PI;
 float middle = window / 2;
@@ -16,12 +17,13 @@ String message;
 Twitter twitter;
 PImage bgImage;
 Serial myPort; // The serial port object
-File file = new File(sketchPath("twitterImage.png")); // path of screenshot image
 
 void setup() {
   size(window, window);
+  
   twitterSetup();
   serialSetup(0); // pass in the port you need; typically 0.
+  
   bgImage = loadImage("radar.jpg");
 }
 
@@ -86,15 +88,16 @@ void serialSetup(int port) {
 void serialEvent (Serial myPort) {
   String serialRead = myPort.readStringUntil('\n');
   serialRead = trim(serialRead); // trim trailing and leading whitespace
+  sensorValue = float(serialRead); // value for plotting radar
+  
   println(serialRead);
-  sensorValue = float(serialRead);
 }
 
 void keyPressed() {
   if (key == 't' || key == 'T') {
     if (sensorValue < 5) message = "Don't come any closer or I'll cast a spell on you!";
     else if (sensorValue < 20) message = "Hey, you're kinda in my personal space.\nYou are " + sensorValue + " cm from my sensor.";
-    else message += "Hi there, hows it going?\nYou are " + sensorValue + " cm from my sensor.";
+    else message = "Hi there, hows it going?\nYou are " + sensorValue + " cm from my sensor.";
     tweet(message);
   }
 }
