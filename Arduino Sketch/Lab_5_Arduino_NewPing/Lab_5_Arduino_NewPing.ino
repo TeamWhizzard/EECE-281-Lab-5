@@ -25,7 +25,7 @@ const int pinTrig = 12;
 const int pinEcho = 13;
 const int pinTemp = A0;
 
-const int MAX_DISTANCE = 500; // maximum reading distance of ultrasonic sensor in cm
+const int MAX_DISTANCE = 300; // maximum reading distance of ultrasonic sensor in cm
 
 float echoPulse;
 float temperature;
@@ -54,8 +54,7 @@ void loop() {
     velocity = (331.3 + (0.6 * temperature)); // speed of sound
     time = (echoPulse) / 2; // devide by two because functions returns twice the time needed
     distance = (velocity * time) / 10000; 
-    
     Serial.println(distance);
-    delay(500);
+    delay(1000);
   }
 }
