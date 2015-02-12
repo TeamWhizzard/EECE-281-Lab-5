@@ -11,6 +11,9 @@ String lastSerRead;
 String message;
 Twitter twitter;
 
+// file path of screenshot image
+File file = new File(sketchPath("twitterImage.png"));
+
 void setup()
 {
     size(800,600);
@@ -46,14 +49,14 @@ void serialEvent (Serial myPort) {
 void keyPressed()
 {
   if (key == 't' || key == 'T') {
-    //saveFrame("twitterImage.png");   
+    //println(file.exists()); // test
+    saveFrame("twitterImage.png");   
+    //println(file.exists()); // test
     
     if (int(lastSerRead) < 5) message = "Don't come any closer or I'll cast a spell on you!";
     else if (int(lastSerRead) < 20) message = "Hey, you're kindof in my personal space.\nYou are " + lastSerRead + " cm from my sensor.";
     else message += "Hi there, hows it going?\nYou are " + lastSerRead + " cm from my sensor.";
 
-    // TODO processing screenshot
-    // TODO posting image to twitter
     tweet(message);
   }
 }
@@ -61,7 +64,15 @@ void keyPressed()
 void tweet (String message)
 {
   try {
+    // code that will be used for adding file
+    // StatusUpdate status = new StatusUpdate(message);
+    // status.setMedia(file);
+    //twitter.updateStatus(status);
+    
+    // code for working program
     Status status = twitter.updateStatus(message);
+    
+    // leave this here   
     System.out.println("Status updated to: " + message);
   } catch (TwitterException te) { System.out.println("Error: " + te.getMessage()); }
 }
