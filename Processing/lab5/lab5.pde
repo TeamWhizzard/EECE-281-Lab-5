@@ -43,9 +43,9 @@ void draw() {
   automaticRadar(false); // toggle for radar by touch/click or rolling radar
   
   // draws black center circle
-  //fill(0);
-  //ellipseMode(CENTER);
-  //ellipse(middle - 1, middle - 1, 50, 50); // centre circle to mask radar slice that will draw down to a point if we let it.
+  fill(0);
+  ellipseMode(CENTER);
+  ellipse(middle - 1, middle - 1, 50, 50); // centre circle to mask radar slice that will draw down to a point if we let it.
   
   plotDataLine(); // plots current data reading from serial monitor
 }
@@ -133,7 +133,7 @@ void plotDataLine() {
 void tweet (String message) {
   try {
     StatusUpdate status = new StatusUpdate(message);
-    status.setMedia(file);
+    status.setMedia(twitFile);
     twitter.updateStatus(status);
 
     System.out.println("Status updated to: " + message); // leave this here
