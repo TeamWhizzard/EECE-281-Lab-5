@@ -12,7 +12,10 @@ float botAngle = QUARTER_PI;
 float middle = window / 2;
 float boundary = window - border;
 float angle;
-float sensorValue = 2.5;
+
+float sensorValue = 2.5; // distance from Arduino
+float sensorAngle = 0; // angle from Arduino
+
 String message;
 Twitter twitter;
 PImage bgImage;
@@ -45,7 +48,7 @@ void automaticRadar(boolean auto) {
     topAngle += 0.01; // move forward every 0.01 every frame
     botAngle += 0.01;
   } else {
-    angle = atan2(mouseY - height / 2, mouseX - width / 2); // shape follows mouse or touch drag
+    angle = ((sensorAngle * PI) / 180) - PI/2; // sensor angle in radians
     topAngle = angle - PI / 8;
     botAngle = angle + PI / 8;
   }
@@ -67,7 +70,7 @@ void plotDataLine() {
   else
     sensorPlot = map(sensorValue, 2.5, 50, 60, 175);
   
-  println(sensorValue);
+  println(sensorValue + " " + sensorAngle);
   noFill();
   arc(middle, middle, sensorPlot, sensorPlot, topAngle, botAngle); // radar plot
 }
@@ -93,11 +96,11 @@ void serialSetup(int port) {
 }
 
 void serialEvent (Serial myPort) {
-  String serialRead = myPort.readStringUntil('\n');
+  String serialRead = myPort.readStringUntil('\n'); // "cm degrees" where zero degrees is facing
   serialRead = trim(serialRead); // trim trailing and leading whitespace
-  sensorValue = float(serialRead); // value for plotting radar
   
-  //println(serialRead);
+  sensorValue = float(serialRead.split(" ")[0]); // distance to plot on radar (cm)
+  sensorAngle = float(serialRead.split(" ")[1]); // angle to plot on radar (degree)
 }
 
 void keyPressed() {
