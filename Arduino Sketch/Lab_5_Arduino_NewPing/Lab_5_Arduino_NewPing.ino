@@ -21,9 +21,15 @@
 
 #include "NewPing.h"
 
-const int pinTrig = 12;
-const int pinEcho = 13;
+const int pinTrig = 7;
+const int pinEcho = 8;
 const int pinTemp = A0;
+
+const int directionPin = 2;
+const int stepPin = 3;
+const int sleepPin = 4;
+const int resetPin = 5;
+const int enablePin = 6;
 
 const int MAX_DISTANCE = 300; // maximum reading distance of ultrasonic sensor in cm
 
@@ -32,11 +38,23 @@ float temperature;
 float velocity;
 float time;
 float distance;
+float angle = 0;
+int directn = 1; // 1 is clockwise, -1 is counterclockwise
 
 NewPing sonar(pinTrig, pinEcho, MAX_DISTANCE);
 
 void setup() {
   Serial.begin(115200); // serial Port Initialization
+  pinMode(directionPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  pinMode(sleepPin, OUTPUT);
+  pinMode(resetPin, OUTPUT);
+  pinMode(enablePin, OUTPUT);  
+  digitalWrite(directionPin, LOW);
+  digitalWrite(stepPin, LOW);
+  digitalWrite(sleepPin, HIGH);
+  digitalWrite(resetPin, HIGH);
+  digitalWrite(enablePin, LOW);
 }
 
 void loop() {
@@ -49,12 +67,37 @@ void loop() {
   echoPulse = float(sonar.ping_median()); // returns time to and from object
   
   if (echoPulse != 0) { // zero indicates no echo reading
-  
     // distance = velocity * time where velocity is speed of sound
     velocity = (331.3 + (0.6 * temperature)); // speed of sound
     time = (echoPulse) / 2; // devide by two because functions returns twice the time needed
-    distance = (velocity * time) / 10000; 
-    Serial.println(distance);
-    delay(1000);
+    distance = (velocity * time) / 10000;
+    
+    steps(1, directn);
+    angle = angle + 1.8 * directn;
+    if(angle > 180) {
+      directn = -1;
+    }
+
+    if(angle < -180) {
+      directn = 1;
+    }
+  
+    Serial.println(String(distance) + " " + String (angle));
+    delay(200);
+  }
+}
+
+// Moves the stepper motor a number of steps equal to argument
+// positive for clockwise, negative for counterclockwise
+void steps (int numsteps, int directn) {
+  if (directn > 0) {
+    digitalWrite(directionPin, LOW);
+  } else {
+    digitalWrite(directionPin, HIGH);
+  }
+  
+  for(int i=0;i<abs(numsteps);i++) {
+    digitalWrite(stepPin, HIGH);
+    digitalWrite(stepPin, LOW);
   }
 }

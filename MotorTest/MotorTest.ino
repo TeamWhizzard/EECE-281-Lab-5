@@ -2,7 +2,7 @@ const int directionPin = 2;
 const int stepPin = 3;
 const int sleepPin = 4;
 const int resetPin = 5;
-const int enablePin = 9;
+const int enablePin = 6;
 
 void setup() {
   pinMode(directionPin, OUTPUT);
