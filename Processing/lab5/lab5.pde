@@ -21,6 +21,9 @@ Twitter twitter;
 PImage bgImage;
 Serial myPort; // The serial port object
 
+// make sure you use / not \ for file names
+File file = new File ("C:/Users/Theresa_Win/Documents/GitHub/EECE-281-Lab-5/Processing/lab5/data/twitterImage.png");
+
 void setup() {
   size(window, window);
   
@@ -105,6 +108,8 @@ void serialEvent (Serial myPort) {
 
 void keyPressed() {
   if (key == 't' || key == 'T') {
+    saveFrame("data/twitterImage.png"); // screenshot of current radar
+    
     if (sensorValue < 5) message = "Don't come any closer or I'll cast a spell on you!";
     else if (sensorValue < 20) message = "Hey, you're kinda in my personal space.\nYou are " + sensorValue + " cm from my sensor.";
     else message = "Hi there, hows it going?\nYou are " + sensorValue + " cm from my sensor.";
@@ -114,7 +119,10 @@ void keyPressed() {
 
 void tweet (String message) {
   try {
-    Status status = twitter.updateStatus(message); // update our status with a text
+    StatusUpdate status = new StatusUpdate(message);
+    status.setMedia(file);
+    twitter.updateStatus(status);
+
     System.out.println("Status updated to: " + message); // leave this here
   } 
   catch (TwitterException te) { 
