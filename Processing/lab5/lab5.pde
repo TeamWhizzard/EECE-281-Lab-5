@@ -4,25 +4,30 @@ import twitter4j.auth.*;
 import twitter4j.api.*;
 import processing.serial.*;
 
-int window = 600;
-int border = 60; // margin
+// window specific constants and variables
+int window = 600; // radar window width and height in pixels
+int border = 60; // outer border of radar circle in pixels
 
-float topAngle = 0;
-float botAngle = QUARTER_PI;
-float middle = window / 2;
-float boundary = window - border;
-float angle;
+float topAngle = 0; // top angle for radar highlighted strip
+float botAngle = QUARTER_PI; // bottom angle for radar highlighted slip
+float middle = window / 2; // center pixel of window
+float boundary = window - border; // edge of working radar circle
+float angle; // holds angle around the circle of current sensor direction
 
-float sensorValue = 2.5; // distance from Arduino
-float sensorAngle = 0; // angle from Arduino
-
-String message;
-Twitter twitter;
 PImage bgImage;
+
+// serial monitor objects and variables
 Serial myPort; // The serial port object
 
+float sensorValue = 2.5; // distance from Arduino - initialized to 2.5cm as "zero" as first reading
+float sensorAngle = 0; // angle from Arduino - initizlied to zero for first reading
+
+// Twitter objects and variables
+String message; // holds message to be displayed in twitter message upon request
+Twitter twitter; // twitter object
+
 // make sure you use / not \ for file names
-File file = new File ("C:/Users/Theresa_Win/Documents/GitHub/EECE-281-Lab-5/Processing/lab5/data/twitterImage.png");
+File twitFile = new File ("C:/Users/Theresa_Win/Documents/GitHub/EECE-281-Lab-5/Processing/lab5/data/twitterImage.png");
 
 void setup() {
   size(window, window);
@@ -36,74 +41,25 @@ void setup() {
 void draw() {
   background(bgImage);
   automaticRadar(false); // toggle for radar by touch/click or rolling radar
-  fill(0);
-  ellipseMode(CENTER);
-  ellipse(middle - 1, middle - 1, 50, 50); // centre circle to mask radar slice that will draw down to a point if we let it.
-  plotDataLine();
+  
+  // draws black center circle
+  //fill(0);
+  //ellipseMode(CENTER);
+  //ellipse(middle - 1, middle - 1, 50, 50); // centre circle to mask radar slice that will draw down to a point if we let it.
+  
+  plotDataLine(); // plots current data reading from serial monitor
 }
 
 void mousePressed() {
-  redraw();
-}
-
-void automaticRadar(boolean auto) {
-  if (auto) {
-    topAngle += 0.01; // move forward every 0.01 every frame
-    botAngle += 0.01;
-  } else {
-    angle = ((sensorAngle * PI) / 180) - PI/2; // sensor angle in radians
-    topAngle = angle - PI / 8;
-    botAngle = angle + PI / 8;
-  }
-  fill(50, 100, 50, 100); // 4th value is alpha channel (transparency)
-  noStroke();
-  arc(middle, middle, boundary, boundary, topAngle, botAngle); // finally we draw the radar slice
-}
-
-void plotDataLine() {
-  strokeWeight(3);
-  strokeCap(SQUARE);
-  stroke(0, 255, 0, 200);
-  
-  float sensorPlot;
-  if (sensorValue > 250)
-    sensorPlot = boundary;
-  else if (sensorValue > 50)
-    sensorPlot = map(sensorValue, 50, 250, 175, boundary);
-  else
-    sensorPlot = map(sensorValue, 2.5, 50, 60, 175);
-  
-  println(sensorValue + " " + sensorAngle);
-  noFill();
-  arc(middle, middle, sensorPlot, sensorPlot, topAngle, botAngle); // radar plot
-}
-
-void twitterSetup() {
-  ConfigurationBuilder cb = new ConfigurationBuilder();
-
-  //Twitter Credentials
-  cb.setOAuthConsumerKey(API_Constants.API_KEY);
-  cb.setOAuthConsumerSecret(API_Constants.API_SECRET);
-  cb.setOAuthAccessToken(API_Constants.ACCESS_TOKEN);
-  cb.setOAuthAccessTokenSecret(API_Constants.ACCESS_SECRET);
-
-  TwitterFactory tf = new TwitterFactory(cb.build()); // Twitter factory
-  twitter = tf.getInstance(); // initialize twitter object
-}
-
-// serialMonitor exists so Steven can quickly switch ports as his laptop is special and needs extra attention
-void serialSetup(int port) {
-  println(Serial.list()); // List available serial ports in monitor for reference
-  myPort = new Serial(this, Serial.list()[port], 115200); // open serial port - tested laptop only uses one
-  myPort.bufferUntil('\n');  // don't generate a serialEvent() unless you get a newline character
+  redraw(); // calls draw function
 }
 
 void serialEvent (Serial myPort) {
-  String serialRead = myPort.readStringUntil('\n'); // "cm degrees" where zero degrees is facing
+  String serialRead = myPort.readStringUntil('\n'); // "cm degrees"
   serialRead = trim(serialRead); // trim trailing and leading whitespace
   
   sensorValue = float(serialRead.split(" ")[0]); // distance to plot on radar (cm)
-  sensorAngle = float(serialRead.split(" ")[1]); // angle to plot on radar (degree)
+  sensorAngle = float(serialRead.split(" ")[1]); // angle to plot on radar (degree) where zero degrees is facing foreward
 }
 
 void keyPressed() {
@@ -113,8 +69,65 @@ void keyPressed() {
     if (sensorValue < 5) message = "Don't come any closer or I'll cast a spell on you!";
     else if (sensorValue < 20) message = "Hey, you're kinda in my personal space.\nYou are " + sensorValue + " cm from my sensor.";
     else message = "Hi there, hows it going?\nYou are " + sensorValue + " cm from my sensor.";
+    
     tweet(message);
   }
+}
+
+void twitterSetup() {
+  ConfigurationBuilder cb = new ConfigurationBuilder();
+
+  //Twitter Credentials - initializing configuration builder
+  cb.setOAuthConsumerKey(API_Constants.API_KEY);
+  cb.setOAuthConsumerSecret(API_Constants.API_SECRET);
+  cb.setOAuthAccessToken(API_Constants.ACCESS_TOKEN);
+  cb.setOAuthAccessTokenSecret(API_Constants.ACCESS_SECRET);
+
+  // factory class - object for creating other objects
+  TwitterFactory tf = new TwitterFactory(cb.build()); // Twitter factory
+  twitter = tf.getInstance(); // initialize a twitter object
+}
+
+// serialMonitor exists so Steven can quickly switch ports as his laptop is special and needs extra attention
+void serialSetup(int port) {
+  println(Serial.list()); // List available serial ports in monitor for reference
+  myPort = new Serial(this, Serial.list()[port], 115200); // open serial port - tested laptop only uses one
+  myPort.bufferUntil('\n');  // don't generate a serialEvent() unless you get a newline character
+}
+
+void automaticRadar(boolean auto) {
+  if (auto) {  // move forward every 0.01 every frame
+    topAngle += 0.01;
+    botAngle += 0.01;
+  } else { // changes based on reading from serial monitor
+    angle = ((sensorAngle * PI) / 180) - PI/2; // sensor angle in radians
+    topAngle = angle - PI / 8;
+    botAngle = angle + PI / 8;
+  }
+  
+  fill(50, 100, 50, 100); // 4th value is alpha channel (transparency)
+  
+  noStroke(); // removes border around arc
+  
+  arc(middle, middle, boundary, boundary, topAngle, botAngle); // finally we draw the radar slice
+}
+
+void plotDataLine() {
+  strokeWeight(3);
+  strokeCap(SQUARE);
+  stroke(0, 255, 0, 200);
+  
+  float sensorPlot; // sensor distance reading scaled to fit in window
+  
+  if (sensorValue > 250) sensorPlot = boundary;
+  else if (sensorValue > 50) sensorPlot = map(sensorValue, 50, 250, 175, boundary);
+  else sensorPlot = map(sensorValue, 2.5, 50, 60, 175);
+  
+  println(sensorValue + " " + sensorAngle);
+  
+  noFill(); // creates arc as a stroke only
+  
+  arc(middle, middle, sensorPlot, sensorPlot, topAngle, botAngle); // radar plot
 }
 
 void tweet (String message) {

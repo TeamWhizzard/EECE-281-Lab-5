@@ -172,36 +172,36 @@ unsigned int NewPing::get_interrupt() {
 */
 
 
-#if TIMER_ENABLED == true
+//#if TIMER_ENABLED == true
 
 // ---------------------------------------------------------------------------
 // Timer interrupt ping methods (won't work with Teensy 3.0, ATmega8/128 and all ATtiny microcontrollers)
 // ---------------------------------------------------------------------------
 
-void NewPing::ping_timer(void (*userFunc)(void)) {
-  if (!ping_trigger()) return;         // Trigger a ping, if it returns false, return without starting the echo timer.
-  timer_us(ECHO_TIMER_FREQ, userFunc); // Set ping echo timer check every ECHO_TIMER_FREQ uS.
-}
+//void NewPing::ping_timer(void (*userFunc)(void)) {
+//  if (!ping_trigger()) return;         // Trigger a ping, if it returns false, return without starting the echo timer.
+//  timer_us(ECHO_TIMER_FREQ, userFunc); // Set ping echo timer check every ECHO_TIMER_FREQ uS.
+//}
 
 
-boolean NewPing::check_timer() {
-  if (micros() > _max_time) { // Outside the timeout limit.
-    timer_stop();           // Disable timer interrupt
-    return false;           // Cancel ping timer.
-  }
-
-#if URM37_ENABLED == false
-  if (!(*_echoInput & _echoBit)) { // Ping echo received.
-#else
-  if (*_echoInput & _echoBit) {    // Ping echo received.
-#endif
-    timer_stop();                // Disable timer interrupt
-    ping_result = (micros() - (_max_time - _maxEchoTime) - PING_TIMER_OVERHEAD); // Calculate ping time including overhead.
-    return true;                 // Return ping echo true.
-  }
-
-  return false; // Return false because there's no ping echo yet.
-}
+//boolean NewPing::check_timer() {
+//  if (micros() > _max_time) { // Outside the timeout limit.
+//    timer_stop();           // Disable timer interrupt
+//    return false;           // Cancel ping timer.
+//  }
+//
+//#if URM37_ENABLED == false
+//  if (!(*_echoInput & _echoBit)) { // Ping echo received.
+//#else
+//  if (*_echoInput & _echoBit) {    // Ping echo received.
+//#endif
+//    timer_stop();                // Disable timer interrupt
+//    ping_result = (micros() - (_max_time - _maxEchoTime) - PING_TIMER_OVERHEAD); // Calculate ping time including overhead.
+//    return true;                 // Return ping echo true.
+//  }
+//
+//  return false; // Return false because there's no ping echo yet.
+//}
 
 
 // ---------------------------------------------------------------------------
@@ -209,129 +209,129 @@ boolean NewPing::check_timer() {
 // ---------------------------------------------------------------------------
 
 // Variables used for timer functions
-void (*intFunc)();
-void (*intFunc2)();
-unsigned long _ms_cnt_reset;
-volatile unsigned long _ms_cnt;
-#if defined(__arm__) && defined(TEENSYDUINO)
-IntervalTimer itimer;
-#endif
+//void (*intFunc)();
+//void (*intFunc2)();
+//unsigned long _ms_cnt_reset;
+//volatile unsigned long _ms_cnt;
+//#if defined(__arm__) && defined(TEENSYDUINO)
+//IntervalTimer itimer;
+//#endif
 
 
-void NewPing::timer_us(unsigned int frequency, void (*userFunc)(void)) {
-  intFunc = userFunc; // User's function to call when there's a timer event.
-  timer_setup();      // Configure the timer interrupt.
-
-#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
-  OCR4C = min((frequency >> 2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
-  TIMSK4 = (1 << TOIE4);                // Enable Timer4 interrupt.
-#elif defined (__arm__) && defined (TEENSYDUINO) // Timer for Teensy 3.x
-  itimer.begin(userFunc, frequency);           // Really simple on the Teensy 3.x, calls userFunc every 'frequency' uS.
-#else
-  OCR2A = min((frequency >> 2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
-  TIMSK2 |= (1 << OCIE2A);              // Enable Timer2 interrupt.
-#endif
-}
-
-
-void NewPing::timer_ms(unsigned long frequency, void (*userFunc)(void)) {
-  intFunc = NewPing::timer_ms_cntdwn;  // Timer events are sent here once every ms till user's frequency is reached.
-  intFunc2 = userFunc;                 // User's function to call when user's frequency is reached.
-  _ms_cnt = _ms_cnt_reset = frequency; // Current ms counter and reset value.
-  timer_setup();                       // Configure the timer interrupt.
-
-#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
-  OCR4C = 249;         // Every count is 4uS, so 1ms = 250 counts - 1.
-  TIMSK4 = (1 << TOIE4); // Enable Timer4 interrupt.
-#elif defined (__arm__) && defined (TEENSYDUINO)  // Timer for Teensy 3.x
-  itimer.begin(NewPing::timer_ms_cntdwn, 1000); // Set timer to 1ms (1000 uS).
-#else
-  OCR2A = 249;           // Every count is 4uS, so 1ms = 250 counts - 1.
-  TIMSK2 |= (1 << OCIE2A); // Enable Timer2 interrupt.
-#endif
-}
+//void NewPing::timer_us(unsigned int frequency, void (*userFunc)(void)) {
+//  intFunc = userFunc; // User's function to call when there's a timer event.
+//  timer_setup();      // Configure the timer interrupt.
+//
+//#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
+//  OCR4C = min((frequency >> 2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
+//  TIMSK4 = (1 << TOIE4);                // Enable Timer4 interrupt.
+//#elif defined (__arm__) && defined (TEENSYDUINO) // Timer for Teensy 3.x
+//  itimer.begin(userFunc, frequency);           // Really simple on the Teensy 3.x, calls userFunc every 'frequency' uS.
+//#else
+//  OCR2A = min((frequency >> 2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
+//  TIMSK2 |= (1 << OCIE2A);              // Enable Timer2 interrupt.
+//#endif
+//}
 
 
-void NewPing::timer_stop() { // Disable timer interrupt.
-#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
-  TIMSK4 = 0;
-#elif defined (__arm__) && defined (TEENSYDUINO) // Timer for Teensy 3.x
-  itimer.end();
-#else
-  TIMSK2 &= ~(1 << OCIE2A);
-#endif
-}
+//void NewPing::timer_ms(unsigned long frequency, void (*userFunc)(void)) {
+//  intFunc = NewPing::timer_ms_cntdwn;  // Timer events are sent here once every ms till user's frequency is reached.
+//  intFunc2 = userFunc;                 // User's function to call when user's frequency is reached.
+//  _ms_cnt = _ms_cnt_reset = frequency; // Current ms counter and reset value.
+//  timer_setup();                       // Configure the timer interrupt.
+//
+//#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
+//  OCR4C = 249;         // Every count is 4uS, so 1ms = 250 counts - 1.
+//  TIMSK4 = (1 << TOIE4); // Enable Timer4 interrupt.
+//#elif defined (__arm__) && defined (TEENSYDUINO)  // Timer for Teensy 3.x
+//  itimer.begin(NewPing::timer_ms_cntdwn, 1000); // Set timer to 1ms (1000 uS).
+//#else
+//  OCR2A = 249;           // Every count is 4uS, so 1ms = 250 counts - 1.
+//  TIMSK2 |= (1 << OCIE2A); // Enable Timer2 interrupt.
+//#endif
+//}
+
+
+//void NewPing::timer_stop() { // Disable timer interrupt.
+//#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
+//  TIMSK4 = 0;
+//#elif defined (__arm__) && defined (TEENSYDUINO) // Timer for Teensy 3.x
+//  itimer.end();
+//#else
+//  TIMSK2 &= ~(1 << OCIE2A);
+//#endif
+//}
 
 
 // ---------------------------------------------------------------------------
 // Timer2/Timer4 interrupt method support functions (not called directly)
 // ---------------------------------------------------------------------------
 
-void NewPing::timer_setup() {
-#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
-  timer_stop(); // Disable Timer4 interrupt.
-  TCCR4A = TCCR4C = TCCR4D = TCCR4E = 0;
-  TCCR4B = (1 << CS42) | (1 << CS41) | (1 << CS40) | (1 << PSR4); // Set Timer4 prescaler to 64 (4uS/count, 4uS-1020uS range).
-  TIFR4 = (1 << TOV4);
-  TCNT4 = 0;    // Reset Timer4 counter.
-#elif defined (__AVR_ATmega8__)
-  timer_stop();                 // Disable Timer2 interrupt.
-  ASSR &= ~(1 << AS2);          // Set clock, not pin.
-  TCCR2 = (1 << WGM21 | 1 << CS22); // Set Timer2 to CTC mode, prescaler to 64 (4uS/count, 4uS-1020uS range).
-  TCNT2 = 0;                    // Reset Timer2 counter.
-#elif defined (__arm__) && defined (TEENSYDUINO)
-  timer_stop(); // Stop the timer.
-#else
-  timer_stop();        // Disable Timer2 interrupt.
-  ASSR &= ~(1 << AS2); // Set clock, not pin.
-  TCCR2A = (1 << WGM21); // Set Timer2 to CTC mode.
-  TCCR2B = (1 << CS22); // Set Timer2 prescaler to 64 (4uS/count, 4uS-1020uS range).
-  TCNT2 = 0;           // Reset Timer2 counter.
-#endif
-}
+//void NewPing::timer_setup() {
+//#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
+//  timer_stop(); // Disable Timer4 interrupt.
+//  TCCR4A = TCCR4C = TCCR4D = TCCR4E = 0;
+//  TCCR4B = (1 << CS42) | (1 << CS41) | (1 << CS40) | (1 << PSR4); // Set Timer4 prescaler to 64 (4uS/count, 4uS-1020uS range).
+//  TIFR4 = (1 << TOV4);
+//  TCNT4 = 0;    // Reset Timer4 counter.
+//#elif defined (__AVR_ATmega8__)
+//  timer_stop();                 // Disable Timer2 interrupt.
+//  ASSR &= ~(1 << AS2);          // Set clock, not pin.
+//  TCCR2 = (1 << WGM21 | 1 << CS22); // Set Timer2 to CTC mode, prescaler to 64 (4uS/count, 4uS-1020uS range).
+//  TCNT2 = 0;                    // Reset Timer2 counter.
+//#elif defined (__arm__) && defined (TEENSYDUINO)
+//  timer_stop(); // Stop the timer.
+//#else
+//  timer_stop();        // Disable Timer2 interrupt.
+//  ASSR &= ~(1 << AS2); // Set clock, not pin.
+//  TCCR2A = (1 << WGM21); // Set Timer2 to CTC mode.
+//  TCCR2B = (1 << CS22); // Set Timer2 prescaler to 64 (4uS/count, 4uS-1020uS range).
+//  TCNT2 = 0;           // Reset Timer2 counter.
+//#endif
+//}
 
 
-void NewPing::timer_ms_cntdwn() {
-  if (!_ms_cnt--) {            // Count down till we reach zero.
-    intFunc2();              // Scheduled time reached, run the main timer event function.
-    _ms_cnt = _ms_cnt_reset; // Reset the ms timer.
-  }
-}
-
-#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
-ISR(TIMER4_OVF_vect) {
-#elif defined (__AVR_ATmega8__) // ATmega8 microcontrollers.
-ISR(TIMER2_COMP_vect) {
-#elif defined (__arm__) && defined (TEENSYDUINO) // Teensy 3.x
-static void unusedfunction() {
-#else
-ISR(TIMER2_COMPA_vect) {
-#endif
-  intFunc(); // Call wrapped function.
-}
-
-
-#endif
+//void NewPing::timer_ms_cntdwn() {
+//  if (!_ms_cnt--) {            // Count down till we reach zero.
+//    intFunc2();              // Scheduled time reached, run the main timer event function.
+//    _ms_cnt = _ms_cnt_reset; // Reset the ms timer.
+//  }
+//}
+//
+//#if defined (__AVR_ATmega32U4__) // Use Timer4 for ATmega32U4 (Teensy/Leonardo).
+//ISR(TIMER4_OVF_vect) {
+//#elif defined (__AVR_ATmega8__) // ATmega8 microcontrollers.
+//ISR(TIMER2_COMP_vect) {
+//#elif defined (__arm__) && defined (TEENSYDUINO) // Teensy 3.x
+//static void unusedfunction() {
+//#else
+//ISR(TIMER2_COMPA_vect) {
+//#endif
+//  intFunc(); // Call wrapped function.
+//}
+//
+//
+//#endif
 
 
 // ---------------------------------------------------------------------------
 // Conversion methods (rounds result to nearest cm or inch).
 // ---------------------------------------------------------------------------
 
-unsigned int NewPing::convert_cm(unsigned int echoTime) {
-#if ROUNDING_ENABLED == false
-  return (echoTime / US_ROUNDTRIP_CM);              // Convert uS to centimeters (no rounding).
-#else
-  return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert uS to centimeters.
-#endif
-}
-
-
-unsigned int NewPing::convert_in(unsigned int echoTime) {
-#if ROUNDING_ENABLED == false
-  return (echoTime / US_ROUNDTRIP_IN);              // Convert uS to inches (no rounding).
-#else
-  return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert uS to inches.
-#endif
-}
+//unsigned int NewPing::convert_cm(unsigned int echoTime) {
+//#if ROUNDING_ENABLED == false
+//  return (echoTime / US_ROUNDTRIP_CM);              // Convert uS to centimeters (no rounding).
+//#else
+//  return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert uS to centimeters.
+//#endif
+//}
+//
+//
+//unsigned int NewPing::convert_in(unsigned int echoTime) {
+//#if ROUNDING_ENABLED == false
+//  return (echoTime / US_ROUNDTRIP_IN);              // Convert uS to inches (no rounding).
+//#else
+//  return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert uS to inches.
+//#endif
+//}
 

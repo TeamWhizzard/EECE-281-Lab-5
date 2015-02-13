@@ -21,6 +21,7 @@
 
 #include "NewPing.h"
 
+// pin declarations
 const int pinTrig = 7;
 const int pinEcho = 8;
 const int pinTemp = A0;
@@ -33,23 +34,27 @@ const int enablePin = 6;
 
 const int MAX_DISTANCE = 300; // maximum reading distance of ultrasonic sensor in cm
 
-float echoPulse;
-float temperature;
-float velocity;
-float time;
-float distance;
+float echoPulse; // time returned from ultrasonic sensor
+float temperature; // temperature value in C
+
+float velocity; // speed of sound to calculate distance(dependent on temperature)
+float time; // time used in distance calculation
+float distance; // calculated distance read by ultrasonic sensor
+
 float angle = 0;
 int directn = 1; // 1 is clockwise, -1 is counterclockwise
 
-NewPing sonar(pinTrig, pinEcho, MAX_DISTANCE);
+NewPing sonar(pinTrig, pinEcho, MAX_DISTANCE); // initialize ultrasonic sensor
 
 void setup() {
   Serial.begin(115200); // serial Port Initialization
+  
   pinMode(directionPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
   pinMode(sleepPin, OUTPUT);
   pinMode(resetPin, OUTPUT);
   pinMode(enablePin, OUTPUT);  
+  
   digitalWrite(directionPin, LOW);
   digitalWrite(stepPin, LOW);
   digitalWrite(sleepPin, HIGH);
@@ -66,7 +71,7 @@ void loop() {
   temperature = analogRead(pinTemp) * 0.48828125;
   echoPulse = float(sonar.ping_median()); // returns time to and from object
   
-  if (echoPulse != 0) { // zero indicates no echo reading
+  if (echoPulse != 0) { // zero indicates no echo reading - skips outputting to serial monitor
     // distance = velocity * time where velocity is speed of sound
     velocity = (331.3 + (0.6 * temperature)); // speed of sound
     time = (echoPulse) / 2; // devide by two because functions returns twice the time needed
@@ -83,6 +88,7 @@ void loop() {
     }
   
     Serial.println(String(distance) + " " + String (angle));
+    
     delay(200);
   }
 }
