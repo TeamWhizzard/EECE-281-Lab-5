@@ -5,14 +5,14 @@ import twitter4j.api.*;
 import processing.serial.*;
 
 int window = 600;
-int border = 60;
+int border = 60; // margin
 
 float topAngle = 0;
 float botAngle = QUARTER_PI;
 float middle = window / 2;
-float boundry = window - border;
+float boundary = window - border;
 float angle;
-float sensorValue;
+float sensorValue = 2.5;
 String message;
 Twitter twitter;
 PImage bgImage;
@@ -42,7 +42,7 @@ void mousePressed() {
 
 void automaticRadar(boolean auto) {
   if (auto) {
-    topAngle += 0.01; // move forward every 0.05 every frame
+    topAngle += 0.01; // move forward every 0.01 every frame
     botAngle += 0.01;
   } else {
     angle = atan2(mouseY - height / 2, mouseX - width / 2); // shape follows mouse or touch drag
@@ -51,16 +51,23 @@ void automaticRadar(boolean auto) {
   }
   fill(50, 100, 50, 100); // 4th value is alpha channel (transparency)
   noStroke();
-  arc(middle, middle, boundry, boundry, topAngle, botAngle); // finally we draw the radar slice
+  arc(middle, middle, boundary, boundary, topAngle, botAngle); // finally we draw the radar slice
 }
 
 void plotDataLine() {
   strokeWeight(3);
   strokeCap(SQUARE);
   stroke(0, 255, 0, 200);
-  if (sensorValue > 250) // Maximum value coming from the serial monitor is 300; it's set that high so we get boundry cases.
-    sensorValue = 250;
-  float sensorPlot = map(sensorValue, 2.5, 250, 0, boundry); // possible mapping issue here
+  
+  float sensorPlot;
+  if (sensorValue > 250)
+    sensorPlot = boundary;
+  else if (sensorValue > 50)
+    sensorPlot = map(sensorValue, 50, 250, 175, boundary);
+  else
+    sensorPlot = map(sensorValue, 2.5, 50, 60, 175);
+  
+  println(sensorValue);
   noFill();
   arc(middle, middle, sensorPlot, sensorPlot, topAngle, botAngle); // radar plot
 }
@@ -90,7 +97,7 @@ void serialEvent (Serial myPort) {
   serialRead = trim(serialRead); // trim trailing and leading whitespace
   sensorValue = float(serialRead); // value for plotting radar
   
-  println(serialRead);
+  //println(serialRead);
 }
 
 void keyPressed() {
